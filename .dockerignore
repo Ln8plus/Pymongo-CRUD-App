@@ -1,0 +1,11 @@
+#Git
+.git
+
+#Pycache
+__pycache__
+
+#Local Data Store
+LocalDataStore
+
+#venv
+venv
