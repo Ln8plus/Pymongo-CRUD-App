@@ -3,10 +3,20 @@ from pymongo import MongoClient
 from bson.json_util import dumps
 from hashlib import sha256
 
+'''
+Local Connections
 app = Flask(__name__)
 client = MongoClient()
 db = client.LocalMongoDBServer
 collections = db.FlaskAPI
+'''
+
+
+app = Flask(__name__)
+client = MongoClient(host = 'mongodb', port = 27017)
+db = client["SampleDB"]
+collections = db.SampleCollection
+
 
 
 
@@ -143,3 +153,6 @@ def deleteUserId(id=''):
         response = f"The following error has occurred: {str(e)}"
     return jsonify(response)
     
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0',debug=True,port=9000)

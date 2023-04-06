@@ -1,0 +1,19 @@
+services:
+  app:  
+    container_name: pymongoCrudApp
+    build: .
+    ports:
+      - "9000:9000"
+    volumes:
+      - .:/app
+    links:
+      - mongodb
+    command: gunicorn -w 4 -b "0.0.0.0:9000" main:app
+
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodbInstance
+    hostname: mongodb
+    environment:
+      - MONGO_INITDB_DATABASE=SampleDB
