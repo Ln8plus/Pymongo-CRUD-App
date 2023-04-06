@@ -20,6 +20,7 @@ virtualenv -p /usr/bin/python3.10 venv
 Activate the venv on Linux by using:
 ```
 source venv/bin/activate
+```
 
 Alternatively on Windows you might use:
 
