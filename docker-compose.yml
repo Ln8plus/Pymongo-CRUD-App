@@ -19,3 +19,5 @@ services:
       - MONGO_INITDB_DATABASE=SampleDB
     volumes:
       - ./LocalDataStore/db:/data/db
+    ports:
+      - "27018:27017"
