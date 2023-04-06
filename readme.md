@@ -1,9 +1,6 @@
-## Pymongo CRUD App
-- This is a web app made using flask for performing CRUD operations on a mongoDB instance.
-
-
-### Setup
-#### Running Locally:
+# Pymongo CRUD App
+## Setup
+### Running Locally:
 1. Firstly you'll need to clone this repo or download the code and extract it in a local folder.
 
 ```
@@ -69,7 +66,7 @@ gunicorn -w 4 -b "127.0.0.1:9000" main:app
 You can us either a browser or a testing tool such as Postman to interact with the app.
 
 
-#### Running with Docker:
+### Running with Docker:
 You can either build a image with:
 
 ```
@@ -90,7 +87,7 @@ docker run -it pymongoapp
 ```
 
 
-### API endpoints
+## API endpoints
 
 - GET Return names of all users.
 ```

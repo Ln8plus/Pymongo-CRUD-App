@@ -23,7 +23,6 @@ collections = db.SampleCollection
 #Fetch all users. 
 @app.route('/users', methods = ['GET'])
 def fetchAllUsers():
-
     try:
         response = list()
         user_records = collections.find({},{"_id":0,"name":1})
@@ -99,7 +98,6 @@ def createUser():
 #Update user by id with new data.
 @app.route('/users/<id>', methods = ['PUT'])
 def updateUserRecords(id=''):
-
     try:
         if id == '':
             return jsonify({"User id can't be none."})
