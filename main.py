@@ -71,7 +71,7 @@ def createUser():
         user = request.json
 
         if collections.find_one({"id":user['id']}) is not None:
-                return jsonify(f"User with {id} can't be created as their id already exists.")
+                return jsonify(f"User with {user['id']} can't be created as their id already exists.")
         
         hash_obj_1 = sha256()
         hash_obj_1.update(str.encode(user['password']))
@@ -112,11 +112,13 @@ def updateUserRecords(id=''):
         
 
         update = {}
-        if new_info['name'] != '':
+        if 'name' in new_info and new_info['name'] is not None:
             update['name'] = new_info['name']
-        if new_info['email'] != '':
+
+        if 'email' in new_info and new_info['email'] is not None:
             update['email'] = new_info['email']
-        if new_info['password'] != '':
+
+        if 'password' in new_info and new_info['password'] is not None:
             hash_obj_2 = sha256()
             hash_obj_2.update(str.encode(new_info['password']))
             new_hashed_pwd = hash_obj_2.hexdigest()
@@ -155,4 +157,4 @@ def deleteUserId(id=''):
     
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0',debug=True,port=9000)
+    app.run(host='0.0.0.0', debug=True, port=9000)
