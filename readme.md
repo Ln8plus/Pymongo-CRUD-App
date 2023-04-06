@@ -57,7 +57,7 @@ Waitress command (Windows):
 ```
 waitress-serve --host 127.0.0.1 main:app
 ```
-Be sure to remember the port as you might need it during using the app, then you will need to add it at the end of your localhost address such as 127.0.0.1:8080
+Be sure to remember the port as you might need it while using the app, then you will need to add it at the end of your localhost address such as 127.0.0.1:8080
 
 
 Gunicorn command (Linux):
@@ -70,7 +70,7 @@ You can us either a browser or a testing tool such as Postman to interact with t
 
 
 #### Running with Docker:
-You can either build you image with:
+You can either build a image with:
 
 ```
 docker compose up
@@ -78,7 +78,7 @@ docker compose up
 
 This command will build an image with a mongoDB instance and the repo code running simultaneously. 
 
-Or alterantively you can pull my image and run it instead of building your own from: 
+Or pull my image and run it instead of building your own: 
 ```
 https://hub.docker.com/r/ln8plus/pymongoapp-app
 ```
@@ -98,21 +98,16 @@ http://127.0.0.1:9000/users
 ```
 ![image](https://drive.google.com/uc?export=view&id=1GoM8LstqGKh9UdUKkF4QiOMvMY7bXDWx)
 
-
 - GET Records of a single user by id.
 ```
 http://127.0.0.1:9000/users/<id>
 ```
 ![image](https://drive.google.com/uc?export=view&id=1WJ4k0aHGQMEy9uk3PYo7yR-cU575BXea)
 
-
-
-- POST Add new user records to the database.
+- POST Add new user's records to the database.
 ```
 http://127.0.0.1:9000/users
 ```
-![image](https://drive.google.com/uc?export=view&id=1adClhqVzX2BPXb9whdIe8p8TUdzACMQx)
-
 User data will have to be supplied as a json file in the body of the POST request.
 
 eg.
@@ -124,14 +119,12 @@ eg.
     "password": "password1234"
 }
 ```
-
+![image](https://drive.google.com/uc?export=view&id=1adClhqVzX2BPXb9whdIe8p8TUdzACMQx)
 
 - PUT Update user records by id.
 ```
 http://127.0.0.1:9000/users/<id>
 ```
-![image](https://drive.google.com/uc?export=view&id=1YY5Vp-uJ0_FS5Xce5sLU3wc8--yok-xv)
-
 New records will have to be supplied as a json file in the body of the PUT request.
 
 eg.
@@ -140,6 +133,7 @@ eg.
     "password": "331463StrongerpassworD->"
 }
 ```
+![image](https://drive.google.com/uc?export=view&id=1YY5Vp-uJ0_FS5Xce5sLU3wc8--yok-xv)
 
 - DELETE Delete user records by id.
 ```
