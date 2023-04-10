@@ -1,158 +1,158 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
+from flask_restful import Api, Resource, reqparse
 from pymongo import MongoClient
-from bson.json_util import dumps
 from hashlib import sha256
 
-'''
-Local Connections
-app = Flask(__name__)
-client = MongoClient()
-db = client.LocalMongoDBServer
-collections = db.FlaskAPI
-'''
-
 
 app = Flask(__name__)
-client = MongoClient(host = 'mongodb', port = 27017)
-db = client["SampleDB"]
-collections = db.SampleCollection
+api = Api(app)
+
+
+
+localMongoPort = 27017
+localHostName = "localhost"
+containerHostName = "172.17.0.2"
+client = MongoClient("mongodb://172.17.0.2:27017")
+
+
+
+db = client["LocalMongoDBServer"]
+collections = db["FlaskAPI"]
 
 
 
 
-#Fetch all users. 
-@app.route('/users', methods = ['GET'])
-def fetchAllUsers():
-    try:
-        response = list()
-        user_records = collections.find({},{"_id":0,"name":1})
 
-        for user in user_records:
-            response.append(user)
-        response = dumps(response, indent = 1)
+class User(Resource):
 
-    except Exception as e:
-        response = jsonify({"The following error has occurred: ": str(e)})
-    return response
+    #Fetch all users. 
+    def get(self, id = None):
+        try:
+            response = []
+            if id:               
+                user = collections.find_one({"id":id})
+                user_records = {"id":user["id"], "name":user["name"], "email":user["email"], "password":user["password"]}
+                response.append(user_records)
+
+            else:
+                users = collections.find()
+                for user in users:
+                    user_records = {"id":user["id"], "name":user["name"], "email":user["email"], "password":user["password"]}
+                    response.append(user_records)
+
+
+        except Exception as e:
+            response = f"The following error has occurred: : {str(e)}"
+        return jsonify({"response":response})
 
 
 
-#Get records of user by id.
-@app.route('/users/<id>', methods = ['GET'])
-def fetchUserRecords(id=None):
-    try:
-        if id is None:
-            return jsonify({"User id can't be none."})
+
+
+    #Create one user.
+    def post(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument("id", type = str, required = True)
+            parser.add_argument("name", type = str, required = True)
+            parser.add_argument("email", type = str, required = True)
+            parser.add_argument("password", type = str, required = True)
+            args = parser.parse_args()
+
+            id = args["id"]
+            name = args["name"]
+            email = args["email"]
+            password = args["password"]
+
+
+            hash_obj_1 = sha256()
+            hash_obj_1.update(str.encode(password))
+            hashed_pwd = hash_obj_1.hexdigest()
+            
+
+
+            payload = {"id":id, 
+                       "name":name, 
+                       "email":email, 
+                       "password":hashed_pwd}
+
+            if collections.find_one({"id":id}) is not None:
+                    return jsonify(f"User with {id} can't be created as their id already exists.")
+            
         
-        response = list()
-        user_records = collections.find_one({"id":id})
+            collections.insert_one(payload)
+            response = f"User with {payload['id']}'s records have been added successfully."
 
-        if user_records is None:
-            return jsonify(f"User with {id} doesn't exist.")
-        
-        response.append(user_records)
-        response = dumps(response, indent = 1)
-
-    except Exception as e:
-        response = jsonify({"The following error has occurred: ": str(e)})
-    return response
+        except Exception as e:
+            response = f"The following error has occurred: {str(e)}"
+        return jsonify(response)
 
 
 
 
 
+    #Update user by id with new data.
+    def put(self, id = None):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument("name", type = str, required = False, location = "json")
+            parser.add_argument("email", type = str, required = False, location = "json")
+            parser.add_argument("password", type = str, required = False, location = "json")
+            args = parser.parse_args()
+
+            if args["name"] is None and args["email"] is None and args["password"] is None:
+                return jsonify({"No records for updatation have been provided."})
+
+            filter = {"id":id}
+
+            update = {}
+            if args["name"] is not None:
+                update["name"] = args["name"]
+
+            if args["email"] is not None:
+                update["email"] = args["email"]
+
+            if args["password"] is not None:
+                hash_obj_2 = sha256()
+                hash_obj_2.update(str.encode(args["password"]))
+                new_hashed_pwd = hash_obj_2.hexdigest()
+                update["password"] = new_hashed_pwd
 
 
-#Create one user.
-@app.route('/users', methods = ['POST'])
-def createUser():
-    try:
-        user = request.json
+            new_records = {"$set":update}
+            collections.update_one(filter, new_records)
+            response = f"User {id}'s records have been updated successfully."
 
-        if collections.find_one({"id":user['id']}) is not None:
-                return jsonify(f"User with {user['id']} can't be created as their id already exists.")
-        
-        hash_obj_1 = sha256()
-        hash_obj_1.update(str.encode(user['password']))
-        hashed_pwd = hash_obj_1.hexdigest()
-
-        payload = {
-            "id":user['id'],
-            "name":user['name'],
-            "email":user['email'],
-            "password":hashed_pwd
-        }
-    
-        collections.insert_one(payload)
-        response = f"User with {user['id']}'s records have been added successfully."
-
-    except Exception as e:
-        response = f"The following error has occurred: {str(e)}"
-    return jsonify(response)
-
-
-
-
-
-
-#Update user by id with new data.
-@app.route('/users/<id>', methods = ['PUT'])
-def updateUserRecords(id=''):
-    try:
-        if id == '':
-            return jsonify({"User id can't be none."})
-        
-        if collections.find_one({"id":id}) is None:
-                return jsonify(f"User with {id} can't be deleted as they don't exist.")
-
-        filter = {"id":id}
-        new_info = request.json
-        
-
-        update = {}
-        if 'name' in new_info and new_info['name'] is not None:
-            update['name'] = new_info['name']
-
-        if 'email' in new_info and new_info['email'] is not None:
-            update['email'] = new_info['email']
-
-        if 'password' in new_info and new_info['password'] is not None:
-            hash_obj_2 = sha256()
-            hash_obj_2.update(str.encode(new_info['password']))
-            new_hashed_pwd = hash_obj_2.hexdigest()
-            update['password'] = new_hashed_pwd
-
-
-        new_records = {"$set":update}
-        collections.update_one(filter, new_records)
-        response = f"User {id}'s records have been updated successfully."
-
-    except Exception as e:
-        response = f"The following error has occurred: {str(e)}"
-    return jsonify(response)
+        except Exception as e:
+            response = f"The following error has occurred: {str(e)}"
+        return jsonify(response)
 
 
 
 
+    #Delete user by id.
+    def delete(self, id = None):
+        try:
+            id = int(id)
+            if id is None:
+                return jsonify({"User id can't be none."})
+            
+            if collections.find_one({"id":id}) is None:
+                return jsonify(f"User with {id} not found.")
+            
+            collections.delete_one({"id":id})
+            response = f"User {id}'s records have been deleted successfully."
+
+        except Exception as e:
+            response = f"The following error has occurred: {str(e)}"
+        return jsonify(response)
 
 
-#Delete user by id.
-@app.route('/users/<id>', methods = ['DELETE'])
-def deleteUserId(id=''):
-    try:
-        if id == '':
-            return jsonify({"User id can't be none."})
-        
-        if collections.find_one({"id":id}) is None:
-            return jsonify(f"User with {id} not found.")
-        
-        collections.delete_one({"id":id})
-        response = f"User {id}'s records have been deleted successfully."
 
-    except Exception as e:
-        response = f"The following error has occurred: {str(e)}"
-    return jsonify(response)
-    
+api.add_resource(User, "/users", endpoint="users")
+api.add_resource(User, "/users/<id>", endpoint="user")
+
+
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True, port=9000)
+    app.run(host = "0.0.0.0", debug = True, port = 9000)
