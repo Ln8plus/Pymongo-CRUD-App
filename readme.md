@@ -1,78 +1,39 @@
 # Pymongo CRUD App
 ## Setup
 ### Running this code:
-Note: The following steps require Python to be already installed on your system.
+Note: The following steps require Python & Docker to be already installed on your system.
 
 1. Firstly you'll need to clone this repo or download the code and extract it in a local folder.
 ```
 git clone https://github.com/Ln8plus/Pymongo-CRUD-App
 ```
 
-
-2. Create a venv for storing project dependencies:
+2. Next we'll be building our docker images. Open a terminal in the cloned folder then to get MongoDB running inside a container use this command:
 ```
-virtualenv -p /usr/bin/python3.10 venv
-```
-
-Activate the venv on Linux by using:
-```
-source venv/bin/activate
+docker run -d -p 27018:27017 --name mongoserver -v ./LocalDataStore/db:/data/db mongo:latest
 ```
 
-Alternatively on Windows you might use:
+Alternatively if you've already got MongoDB's image in your Docker. You can use the derived container instead.
+
+3. For our web app we'll need to manually build an image and then run it. Building the image is done by:
 ```
-venv\Scripts\activate
+docker build -t pymongo .
 ```
+The above command builds a docker image using the files of the current folder and names it "pymongo".
 
-
-3. Next install required dependencies from the requirements.txt
+4. Next run the web app using:
 ```
-pip install -r requirements.txt
+docker run -it -p 9000:9000 pymongo
 ```
-You might need pip3 instead of pip if you're on Linux.
+This command runs the image in interactive mode and binds port 9000 of the container to our local machine.
 
-4. Next install mongoDB and setup a database for using the app. Installation steps can be found in the link below.
+5. Optional
+If you get an error such as connection refused you'll need to find out the IP address of the MongoDB container and
+update the connection string in the client variable in main.py.
+To find the IP address of the container you can use docker inspect along with grep:
 ```
-https://www.mongodb.com/docs/manual/administration/install-community/
+docker inspect <containerName/containerId> | grep IPAddress
 ```
-
-After setting up the mongoDB instance on your machine be sure to add the database & collection names to the main.py file.
-```
-db = client.<MongoDB-databasename>
-collections = db.<CollectionName>
-```
-Be sure to uncomment the code in the main.py file and comment/remove the code below it if you're going to run everything locally. If you're running the code with Docker you don't need to edit anything.
-
-
-5. Finally to run locally you'll need to use waitress on Windows or gunicorn if you're on Linux as the initiation command. 
-
-Waitress command (Windows):
-
-```
-waitress-serve --host 127.0.0.1 main:app
-```
-Be sure to remember the port as you might need it while using the app, then you will need to add it at the end of your localhost address such as 127.0.0.1:8080
-
-
-Gunicorn command (Linux):
-
-```
-gunicorn -w 4 -b "127.0.0.1:9000" main:app
-```
-
-You can use a API testing tool such as Postman/RESTfox to interact with the app.
-
-
-### Running with Docker:
-After obtainig the code you'll need to build a Docker image and run it using the command below:
-
-```
-docker compose up
-```
-This command will build a Docker image and run it using Python & MongoDB images obtained from DockerHub.
-At first it might take some time to download depending on your internet but subsequent times it's much faster.
-
-
 
 ## API endpoints
 

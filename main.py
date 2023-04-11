@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_restful import Api, Resource, reqparse
 from pymongo import MongoClient
 from hashlib import sha256
@@ -8,14 +8,7 @@ app = Flask(__name__)
 api = Api(app)
 
 
-
-localMongoPort = 27017
-localHostName = "localhost"
-containerHostName = "172.17.0.2"
-client = MongoClient("mongodb://172.17.0.2:27017")
-
-
-
+client = MongoClient("mongodb://172.17.0.3:27017")
 db = client["LocalMongoDBServer"]
 collections = db["FlaskAPI"]
 
@@ -28,12 +21,14 @@ class User(Resource):
     #Fetch all users. 
     def get(self, id = None):
         try:
-            response = []
-            if id:               
+            response = list()
+            if id is not None:               
                 user = collections.find_one({"id":id})
-                user_records = {"id":user["id"], "name":user["name"], "email":user["email"], "password":user["password"]}
-                response.append(user_records)
-
+                if user is not None:
+                    user_records = {"id":user["id"], "name":user["name"], "email":user["email"], "password":user["password"]}
+                    response.append(user_records)
+                else:
+                    response = f"No user with id {id} was found."
             else:
                 users = collections.find()
                 for user in users:
@@ -43,7 +38,7 @@ class User(Resource):
 
         except Exception as e:
             response = f"The following error has occurred: : {str(e)}"
-        return jsonify({"response":response})
+        return jsonify({"Response":response})
 
 
 
@@ -64,12 +59,10 @@ class User(Resource):
             email = args["email"]
             password = args["password"]
 
-
             hash_obj_1 = sha256()
             hash_obj_1.update(str.encode(password))
             hashed_pwd = hash_obj_1.hexdigest()
             
-
 
             payload = {"id":id, 
                        "name":name, 
@@ -77,15 +70,14 @@ class User(Resource):
                        "password":hashed_pwd}
 
             if collections.find_one({"id":id}) is not None:
-                    return jsonify(f"User with {id} can't be created as their id already exists.")
-            
-        
-            collections.insert_one(payload)
-            response = f"User with {payload['id']}'s records have been added successfully."
+                response = f"User with {id} can't be created as their id already exists."
+            else:
+                collections.insert_one(payload)
+                response = f"User with {payload['id']}'s records have been added successfully."
 
         except Exception as e:
             response = f"The following error has occurred: {str(e)}"
-        return jsonify(response)
+        return jsonify({"Response":response})
 
 
 
@@ -99,9 +91,6 @@ class User(Resource):
             parser.add_argument("email", type = str, required = False, location = "json")
             parser.add_argument("password", type = str, required = False, location = "json")
             args = parser.parse_args()
-
-            if args["name"] is None and args["email"] is None and args["password"] is None:
-                return jsonify({"No records for updatation have been provided."})
 
             filter = {"id":id}
 
@@ -118,14 +107,17 @@ class User(Resource):
                 new_hashed_pwd = hash_obj_2.hexdigest()
                 update["password"] = new_hashed_pwd
 
-
-            new_records = {"$set":update}
-            collections.update_one(filter, new_records)
-            response = f"User {id}'s records have been updated successfully."
+            if update is None:
+                response = "Update paramters haven't been provided."
+            else:
+                new_records = {"$set":update}
+                collections.update_one(filter, new_records)
+                response = f"User {id}'s records have been updated successfully."
 
         except Exception as e:
             response = f"The following error has occurred: {str(e)}"
-        return jsonify(response)
+        return jsonify({"Response":response})
+
 
 
 
@@ -133,19 +125,15 @@ class User(Resource):
     #Delete user by id.
     def delete(self, id = None):
         try:
-            id = int(id)
-            if id is None:
-                return jsonify({"User id can't be none."})
-            
             if collections.find_one({"id":id}) is None:
-                return jsonify(f"User with {id} not found.")
-            
-            collections.delete_one({"id":id})
-            response = f"User {id}'s records have been deleted successfully."
+                response = f"User {id} not found."
+            else:
+                collections.delete_one({"id":id})
+                response = f"User {id}'s records have been deleted successfully."
 
         except Exception as e:
             response = f"The following error has occurred: {str(e)}"
-        return jsonify(response)
+        return jsonify({"Response":response})
 
 
 
