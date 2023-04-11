@@ -10,8 +10,10 @@ git clone https://github.com/Ln8plus/Pymongo-CRUD-App
 
 2. Next we'll be building our docker images. Open a terminal in the cloned folder then to get MongoDB running inside a container use this command:
 ```
-docker run -d -p 27018:27017 --name mongoserver -v ./LocalDataStore/db:/data/db mongo:latest
+docker run -d -p 27017:27017 --name mongoserver -v ./LocalDataStore/db:/data/db mongo:latest
 ```
+On Windows you will need to specify the absoulte path instead of . before the volume.
+You will also need to change slashes("/") to backward slashes("\"). 
 
 Alternatively if you've already got MongoDB's image in your Docker. You can use the derived container instead.
 
@@ -34,7 +36,10 @@ To find the IP address of the container you can use docker inspect along with gr
 ```
 docker inspect <containerName/containerId> | grep IPAddress
 ```
-
+On Windows you may use:
+```
+docker inspect <containerName/containerId> | findstr IPAddress
+```
 ## API endpoints
 
 - GET Return names of all users.

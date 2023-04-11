@@ -8,7 +8,7 @@ app = Flask(__name__)
 api = Api(app)
 
 
-client = MongoClient("mongodb://172.17.0.3:27017")
+client = MongoClient("mongodb://172.17.0.2:27017")
 db = client["LocalMongoDBServer"]
 collections = db["FlaskAPI"]
 
